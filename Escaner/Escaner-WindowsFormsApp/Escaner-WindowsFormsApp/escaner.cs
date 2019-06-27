@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Timers;
 using System.IO.Ports;
 using System.Data.SqlClient;
+using System.Net;
 
 namespace Escaner_WindowsFormsApp
 {
@@ -40,7 +41,9 @@ namespace Escaner_WindowsFormsApp
         void NewFrame_event(object send, NewFrameEventArgs e) {
             try {
                 pictureBox1.Image = (Image)e.Frame.Clone();
- 
+                //Cambio de imagen Espejo
+                pictureBox1.Image.RotateFlip(RotateFlipType.Rotate180FlipY);
+
             } catch (Exception ex) { }
         }
 
@@ -196,6 +199,24 @@ namespace Escaner_WindowsFormsApp
                 if (contador < 33)
                 {
                     pictureBox1.Image.Save(output + "\\Imagen_" + contador +"_"+ textCedula.Text + ".png");
+                    //Subir datos al servidor
+                    FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create("ftp://IP/video.avi");
+                    request.Method = WebRequestMethods.Ftp.UploadFile;
+                    request.Credentials = new NetworkCredential("usuario", "clave");
+                    request.UsePassive = true;
+                    request.UseBinary = true;
+                    request.KeepAlive = true;
+                    //RUTA DONDE ESTA HUBICADO EL VIDEO
+                    FileStream stream = File.OpenRead(output);
+                    byte[] buffer = new byte[stream.Length];
+                    stream.Read(buffer, 0, buffer.Length);
+                    stream.Close();
+                    Stream reqStream = request.GetRequestStream();
+                    reqStream.Write(buffer, 0, buffer.Length);
+                    reqStream.Flush();
+                    reqStream.Close();
+
+                    
                 }
                 else {
                     t.Stop();
