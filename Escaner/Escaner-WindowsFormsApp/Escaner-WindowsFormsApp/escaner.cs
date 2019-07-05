@@ -203,44 +203,49 @@ namespace Escaner_WindowsFormsApp
                     pictureBox1.Image.Save(output + "\\Imagen_" + contador +"_"+ textCedula.Text + ".png");
                 }
                 else {
+
+                    FtpWebRequest reqFTP;
+                    try
+                    {
+                        for (int i = 0; i < 33; i++) {
+
+                        
+                        string fileName = "\\Imagen_" + i + "_" + textCedula.Text + ".png";
+                        string ftpServerIP = "cloud007.solusoftware.com";
+                        FileStream outputStream = new FileStream(output + "\\" + fileName, FileMode.Create);
+
+                        reqFTP = (FtpWebRequest)FtpWebRequest.Create(new
+                        Uri("ftp://" + ftpServerIP + "/" + fileName));
+                        reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
+                        reqFTP.UseBinary = true;
+                        reqFTP.Credentials = new NetworkCredential("didacoru", "a8q@8F@Z");
+                        FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                        Stream ftpStream = response.GetResponseStream();
+                        long cl = response.ContentLength;
+                        int bufferSize = 2048;
+                        int readCount;
+                        byte[] buffer = new byte[bufferSize];
+
+                        readCount = ftpStream.Read(buffer, 0, bufferSize);
+                        while (readCount > 0)
+                        {
+                            outputStream.Write(buffer, 0, readCount);
+                            readCount = ftpStream.Read(buffer, 0, bufferSize);
+                        }
+
+                        ftpStream.Close();
+                        outputStream.Close();
+                        response.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
                     t.Stop();
                 }
 
-                FtpWebRequest reqFTP;
-                try
-                {
-
-                    string fileName = "\\Imagen_" + contador + "_" + textCedula.Text + ".png";
-                    string ftpServerIP = "cloud007.solusoftware.com";
-                    FileStream outputStream = new FileStream(output + "\\" + fileName, FileMode.Create);
-
-                    reqFTP = (FtpWebRequest)FtpWebRequest.Create(new
-                    Uri("ftp://" + ftpServerIP + "/" + fileName));
-                    reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
-                    reqFTP.UseBinary = true;
-                    reqFTP.Credentials = new NetworkCredential("didacoru", "a8q@8F@Z");
-                    FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                    Stream ftpStream = response.GetResponseStream();
-                    long cl = response.ContentLength;
-                    int bufferSize = 2048;
-                    int readCount;
-                    byte[] buffer = new byte[bufferSize];
-
-                    readCount = ftpStream.Read(buffer, 0, bufferSize);
-                    while (readCount > 0)
-                    {
-                        outputStream.Write(buffer, 0, readCount);
-                        readCount = ftpStream.Read(buffer, 0, bufferSize);
-                    }
-
-                    ftpStream.Close();
-                    outputStream.Close();
-                    response.Close();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
+                
 
             }));
         }
