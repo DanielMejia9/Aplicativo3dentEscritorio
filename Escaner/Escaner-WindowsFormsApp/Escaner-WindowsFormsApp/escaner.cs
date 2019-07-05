@@ -24,6 +24,7 @@ namespace Escaner_WindowsFormsApp
         FilterInfoCollection Devices;
         System.Timers.Timer t;
         int contador;
+        int contador2;
 
         public escaner()
         {
@@ -32,7 +33,7 @@ namespace Escaner_WindowsFormsApp
 
         void Start_cam() {
             Devices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
-            frame = new VideoCaptureDevice(Devices[1].MonikerString);
+            frame = new VideoCaptureDevice(Devices[0].MonikerString);
             frame.NewFrame += new AForge.Video.NewFrameEventHandler(NewFrame_event);
             frame.Start();
         }
@@ -196,32 +197,51 @@ namespace Escaner_WindowsFormsApp
             Invoke(new Action(() =>
             {
                 contador += 1;
+                
                 if (contador < 33)
                 {
                     pictureBox1.Image.Save(output + "\\Imagen_" + contador +"_"+ textCedula.Text + ".png");
-                    //Subir datos al servidor
-                    FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create("ftp://cloud007.solusoftware.com");
-                    request.Method = WebRequestMethods.Ftp.UploadFile;
-                    request.Credentials = new NetworkCredential("didacoru", "a8q@8F@Z");
-                    request.UsePassive = true;
-                    request.UseBinary = true;
-                    request.KeepAlive = true;
-                    //RUTA DONDE ESTA HUBICADO EL VIDEO
-                    FileStream stream = new FileStream("C:\\prueba", FileMode.Open, FileAccess.ReadWrite);
-                    //FileStream stream = File.OpenRead("C:\\Users\\Usuario\\Documents\\ImagenesScanner");
-                    byte[] buffer = new byte[stream.Length];
-                    stream.Read(buffer, 0, buffer.Length);
-                    stream.Close();
-                    Stream reqStream = request.GetRequestStream();
-                    reqStream.Write(buffer, 0, buffer.Length);
-                    reqStream.Flush();
-                    reqStream.Close();
-
-                    
                 }
                 else {
                     t.Stop();
                 }
+
+                FtpWebRequest reqFTP;
+                try
+                {
+
+                    string fileName = "\\Imagen_" + contador + "_" + textCedula.Text + ".png";
+                    string ftpServerIP = "cloud007.solusoftware.com";
+                    FileStream outputStream = new FileStream(output + "\\" + fileName, FileMode.Create);
+
+                    reqFTP = (FtpWebRequest)FtpWebRequest.Create(new
+                    Uri("ftp://" + ftpServerIP + "/" + fileName));
+                    reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
+                    reqFTP.UseBinary = true;
+                    reqFTP.Credentials = new NetworkCredential("didacoru", "a8q@8F@Z");
+                    FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                    Stream ftpStream = response.GetResponseStream();
+                    long cl = response.ContentLength;
+                    int bufferSize = 2048;
+                    int readCount;
+                    byte[] buffer = new byte[bufferSize];
+
+                    readCount = ftpStream.Read(buffer, 0, bufferSize);
+                    while (readCount > 0)
+                    {
+                        outputStream.Write(buffer, 0, readCount);
+                        readCount = ftpStream.Read(buffer, 0, bufferSize);
+                    }
+
+                    ftpStream.Close();
+                    outputStream.Close();
+                    response.Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
             }));
         }
 
