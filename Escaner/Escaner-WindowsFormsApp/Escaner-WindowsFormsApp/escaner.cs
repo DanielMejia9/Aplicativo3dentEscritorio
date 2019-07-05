@@ -42,7 +42,7 @@ namespace Escaner_WindowsFormsApp
             try {
                 pictureBox1.Image = (Image)e.Frame.Clone();
                 //Cambio de imagen Espejo
-                pictureBox1.Image.RotateFlip(RotateFlipType.Rotate180FlipY);
+                //pictureBox1.Image.RotateFlip(RotateFlipType.Rotate180FlipY);
 
             } catch (Exception ex) { }
         }
@@ -200,14 +200,15 @@ namespace Escaner_WindowsFormsApp
                 {
                     pictureBox1.Image.Save(output + "\\Imagen_" + contador +"_"+ textCedula.Text + ".png");
                     //Subir datos al servidor
-                    FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create("ftp://IP/video.avi");
+                    FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create("ftp://cloud007.solusoftware.com");
                     request.Method = WebRequestMethods.Ftp.UploadFile;
-                    request.Credentials = new NetworkCredential("usuario", "clave");
+                    request.Credentials = new NetworkCredential("didacoru", "a8q@8F@Z");
                     request.UsePassive = true;
                     request.UseBinary = true;
                     request.KeepAlive = true;
                     //RUTA DONDE ESTA HUBICADO EL VIDEO
-                    FileStream stream = File.OpenRead(output);
+                    FileStream stream = new FileStream("C:\\prueba", FileMode.Open, FileAccess.ReadWrite);
+                    //FileStream stream = File.OpenRead("C:\\Users\\Usuario\\Documents\\ImagenesScanner");
                     byte[] buffer = new byte[stream.Length];
                     stream.Read(buffer, 0, buffer.Length);
                     stream.Close();
